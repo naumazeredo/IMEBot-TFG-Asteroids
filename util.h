@@ -16,6 +16,19 @@ inline float minangle(float deltaAngle) {
   return fabs(deltaAngle) > M_PI ? (-deltaAngle / fabs(deltaAngle))*fabs(2*M_PI - fabs(deltaAngle)) : deltaAngle;
 }
 */
+
 inline float minangle(float deltaAngle) { return deltaAngle; }
+
+struct vec2 { float x, y; };
+
+inline vec2 operator-(const vec2 a) { return {-a.x, -a.y}; }
+inline vec2 operator+(const vec2 a, const vec2 b) { return {a.x + b.x, a.y + b.y}; }
+inline vec2 operator-(const vec2 a, const vec2 b) { return a+(-b); }
+inline vec2 operator*(const vec2 v, const float s) { return {v.x * s, v.y * s}; }
+inline vec2 operator/(const vec2 v, const float s) { return {v.x / s, v.y / s}; }
+inline vec2& operator+=(vec2& a, const vec2 b) { return a=a+b; }
+inline vec2& operator-=(vec2& a, const vec2 b) { return a=a-b; }
+inline vec2& operator*=(vec2& a, const float s) { return a=a*s; }
+inline vec2& operator/=(vec2& a, const float s) { return a=a/s; }
 
 #endif

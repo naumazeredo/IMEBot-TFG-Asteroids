@@ -2,7 +2,6 @@
 
 #include <string>
 #include <cmath>
-#include "util.h"
 
 const float eps = 0.005f;
 
@@ -15,7 +14,7 @@ IMEBot::~IMEBot()
 void IMEBot::stabilize() {
   float angvel = myShip->velAng;
 
-  if (fabs(angvel) > 0.1f) {
+  if (fabs(angvel) > 20.0f) {
     thrust = 0;
     sideThrustFront = angvel / 100;
     sideThrustBack = -angvel / 100;
@@ -27,6 +26,16 @@ void IMEBot::stabilize() {
     sideThrustFront = -clamp(0.2f * refVel.x / 2);
     sideThrustBack = -clamp(0.2f * refVel.x / 2);
   }
+}
+
+float IMEBot::lookAt(vec2 target) {
+  vec2 deltaPos { myShip->posx, myShip->posy };
+  deltaPos = target - deltaPos;
+  vec2 refTarget = rotate(deltaPos, -degtorad(myShip->ang));
+
+  float theta = (atan2(refTarget.y, refTarget.x) - M_PI/2.0f);
+
+  return 3.0f * theta;
 }
 
 void IMEBot::Process()
@@ -81,7 +90,27 @@ void IMEBot::Process()
     sideThrustBack = clamp(refForce.x / 2);
   } else {
     stabilize();
+
+    vec2 vel { myShip->velx, myShip->vely };
+
+    float m = 999999.0f;
+    Ship* closer = nullptr;
+    for (auto ship : gamestate->ships) {
+      if (ship.second->uid == myShip->uid) continue;
+
+      vec2 pos { ship.second->posx, ship.second->posy };
+      if (mag(pos - shipPos) < m) {
+        closer = ship.second;
+        m = mag(pos - shipPos);
+      }
+    }
+
+    if (closer) {
+      float pid = lookAt({closer->posx, closer->posy});
+      sideThrustBack += pid;
+      sideThrustFront -= pid;
+    }
   }
 
-  shoot = 0;
+  shoot = 1;
 }

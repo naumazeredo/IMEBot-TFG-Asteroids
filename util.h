@@ -34,6 +34,7 @@ inline float mag(const vec2& a) { return sqrt((a.x * a.x) + (a.y * a.y)); }
 inline float squaremag(const vec2& a) { return (a.x * a.x) + (a.y * a.y); }
 inline vec2 norm(const vec2& a) { return a/mag(a); }
 inline float dot(const vec2& a, const vec2& b) { return (a.x * b.x) + (a.y * b.y); }
-inline vec2 project(const vec2& a, const float angle) { return {a.x * cos(angle) - a.y * sin(angle), a.x * sin(angle) + a.y * cos(angle)}; }
+inline vec2 rotate(const vec2& a, const float angle) { return {a.x * cos(angle) - a.y * sin(angle), a.x * sin(angle) + a.y * cos(angle)}; }
+inline vec2 project(const vec2& a, const float angle) { return {a.x * cos(angle), a.y * sin(angle)}; }
 
 #endif

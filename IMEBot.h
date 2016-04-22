@@ -7,7 +7,7 @@
 class IMEBot : public BotBase
 {
 private:
-
+  void stabilize();
 public:
   IMEBot();
   virtual ~IMEBot();

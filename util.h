@@ -30,6 +30,6 @@ inline vec2& operator+=(vec2& a, const vec2 b) { return a=a+b; }
 inline vec2& operator-=(vec2& a, const vec2 b) { return a=a-b; }
 inline vec2& operator*=(vec2& a, const float s) { return a=a*s; }
 inline vec2& operator/=(vec2& a, const float s) { return a=a/s; }
-inline float norm(vec2& a) { return sqrt((a.x * a.x) + (a.y * a.y)); }
+inline float norm(const vec2& a) { return sqrt((a.x * a.x) + (a.y * a.y)); }
 
 #endif

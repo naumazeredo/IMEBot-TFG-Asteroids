@@ -14,7 +14,7 @@ IMEBot::~IMEBot()
 void IMEBot::stabilize() {
   float angvel = myShip->velAng;
 
-  if (fabs(angvel) > 20.0f) {
+  if (fabs(angvel) > 10.0f) {
     thrust = 0;
     sideThrustFront = angvel / 100;
     sideThrustBack = -angvel / 100;
@@ -33,7 +33,7 @@ float IMEBot::lookAt(vec2 target) {
   deltaPos = target - deltaPos;
   vec2 refTarget = rotate(deltaPos, -degtorad(myShip->ang));
 
-  float theta = (atan2(refTarget.y, refTarget.x) - M_PI/2.0f);
+  float theta = atan2(refTarget.y, refTarget.x) - M_PI/2.0f;
 
   return 3.0f * theta;
 }
@@ -50,6 +50,7 @@ void IMEBot::Process()
   // TODO(naum): Avoid walls?
 
   for (auto rock : gamestate->rocks) {
+    // TODO(naum): relative velocity as potential weight
     vec2 deltaPos { rock.second->posx, rock.second->posy };
     deltaPos = shipPos - deltaPos;
     if (mag(deltaPos) < 10.0f) {
@@ -84,6 +85,8 @@ void IMEBot::Process()
 
   vec2 refForce = rotate(resForce, -shipAngle);
 
+  float closerDist = 999999.0f;
+
   if (mag(refForce) > 0.4f) {
     thrust = clamp(refForce.y);
     sideThrustFront = clamp(refForce.x / 2);
@@ -93,24 +96,26 @@ void IMEBot::Process()
 
     vec2 vel { myShip->velx, myShip->vely };
 
-    float m = 999999.0f;
     Ship* closer = nullptr;
     for (auto ship : gamestate->ships) {
       if (ship.second->uid == myShip->uid) continue;
 
       vec2 pos { ship.second->posx, ship.second->posy };
-      if (mag(pos - shipPos) < m) {
+      if (mag(pos - shipPos) < closerDist) {
         closer = ship.second;
-        m = mag(pos - shipPos);
+        closerDist = mag(pos - shipPos);
       }
     }
 
     if (closer) {
-      float pid = lookAt({closer->posx, closer->posy});
-      sideThrustBack += pid;
-      sideThrustFront -= pid;
+      float force = lookAt({closer->posx, closer->posy});
+      sideThrustBack += force;
+      sideThrustFront -= force;
     }
   }
 
-  shoot = 1;
+  shoot = 0;
+
+  if (closerDist < 25.0f * ((int)myShip->charge) * 3)
+    shoot = (int)myShip->charge;
 }

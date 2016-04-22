@@ -7,7 +7,6 @@
 class IMEBot : public BotBase
 {
 private:
-  Control controly, controlx, controla;
 
 public:
   IMEBot();

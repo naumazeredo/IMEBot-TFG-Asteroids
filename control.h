@@ -17,10 +17,9 @@ struct Control {
 
     if (fabs(deltaTime) < 0.001) return 0.0f;
 
-    lastTime = curTime;
-
     float derivate = (error - lastError) / deltaTime;
 
+    lastTime = curTime;
     lastError = error;
     return kp * error + kd * derivate;
   }

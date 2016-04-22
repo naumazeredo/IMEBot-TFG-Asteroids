@@ -4,7 +4,9 @@
 #include <cmath>
 #include "util.h"
 
-IMEBot::IMEBot() : controly(0.18f, 0.125f), controlx(0.18f, 0.125f), controla(0.18f, 0.125f)
+const float eps = 0.005f;
+
+IMEBot::IMEBot()
 {}
 
 IMEBot::~IMEBot()
@@ -14,29 +16,24 @@ void IMEBot::Process()
 {
   float t = gamestate->timeStep * gamestate->tick;
   float alpha = degtorad(myShip->ang);
+  vec2 shipPos { myShip->posx, myShip->posy };
 
-  float destX = 5, destY = 0, destAlpha = degtorad(0);
-  float deltaX = destX - myShip->posx, deltaY = destY - myShip->posy;
-  float refY = deltaY * cos(alpha) - deltaX * sin(alpha),
-        refX = deltaX * cos(alpha) + deltaY * sin(alpha),
-        refA = minangle(destAlpha - alpha);
+  vec2 resForce {0, 0};
 
-  float pdy = controly.pd(refY, t);
-  float pdx = controlx.pd(refX, t);
-  float pda = controla.pd(refA, t);
+  for (auto rock : gamestate->rocks) {
+    vec2 pos { rock.second->posx, rock.second->posy };
+    pos = shipPos - pos;
+    if (mag(pos) < 16.0f) {
+      resForce += norm(pos) * (10.0f / squaremag(pos));
+    }
+  }
 
-  // XY
-  /*
-  thrust = clamp(pdy);
-  sideThrustFront = clamp(pdx);
-  sideThrustBack = clamp(pdx);
-  */
+  vec2 refForce;
+  refForce.x = resForce.x * cos(alpha) - resForce.y * sin(alpha);
+  refForce.y = resForce.x * sin(alpha) + resForce.y * cos(alpha);
 
-  // Angle
-  thrust = 0;
-  sideThrustFront = -clamp(pda);
-  sideThrustBack = clamp(pda);
-
-
+  thrust = refForce.y;
+  sideThrustFront = refForce.x / 2;
+  sideThrustBack = refForce.x / 2;
   shoot = 0;
 }

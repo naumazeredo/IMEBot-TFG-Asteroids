@@ -95,8 +95,6 @@ void IMEBot::Process()
   } else {
     stabilize();
 
-    vec2 vel { myShip->velx, myShip->vely };
-
     for (auto ship : gamestate->ships) {
       if (ship.second->uid == myShip->uid) continue;
 

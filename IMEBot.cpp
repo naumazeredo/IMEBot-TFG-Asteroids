@@ -13,17 +13,33 @@ IMEBot::~IMEBot()
 {}
 
 void IMEBot::stabilize() {
-  vec2 vel { myShip->velx, myShip->vely };
-  vec2 refVel = rotate(vel, myShip->ang);
+  float angvel = myShip->velAng;
 
-  thrust = -clamp(refVel.y);
-  sideThrustFront = -clamp(refVel.x / 2);
-  sideThrustBack = -clamp(refVel.x / 2);
+  if (fabs(angvel) > 0.1f) {
+    thrust = 0;
+    sideThrustFront = angvel / 100;
+    sideThrustBack = -angvel / 100;
+  } else {
+    vec2 vel { myShip->velx, myShip->vely };
+    vec2 refVel = rotate(vel, -degtorad(myShip->ang));
+
+    thrust = -clamp(0.3f * refVel.y);
+    sideThrustFront = -clamp(0.2f * refVel.x / 2);
+    sideThrustBack = -clamp(0.2f * refVel.x / 2);
+  }
 }
 
 void IMEBot::Process()
 {
   float t = gamestate->timeStep * gamestate->tick;
+  if (t < 1.0f) {
+    thrust = 0.5f;
+    sideThrustFront = 0.7f;
+    sideThrustBack = -0.7f;
+    shoot = 0;
+    return;
+  }
+
   float shipAngle = degtorad(myShip->ang);
   vec2 shipPos { myShip->posx, myShip->posy };
 
@@ -62,7 +78,7 @@ void IMEBot::Process()
     }
   }
 
-  vec2 refForce = rotate(resForce, shipAngle);
+  vec2 refForce = rotate(resForce, -shipAngle);
 
   if (mag(refForce) > 0.4f) {
     thrust = clamp(refForce.y);

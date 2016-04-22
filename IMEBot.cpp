@@ -32,18 +32,13 @@ void IMEBot::stabilize() {
 void IMEBot::Process()
 {
   float t = gamestate->timeStep * gamestate->tick;
-  if (t < 1.0f) {
-    thrust = 0.5f;
-    sideThrustFront = 0.7f;
-    sideThrustBack = -0.7f;
-    shoot = 0;
-    return;
-  }
 
   float shipAngle = degtorad(myShip->ang);
   vec2 shipPos { myShip->posx, myShip->posy };
 
   vec2 resForce {0, 0};
+
+  // TODO(naum): Avoid walls?
 
   for (auto rock : gamestate->rocks) {
     vec2 deltaPos { rock.second->posx, rock.second->posy };

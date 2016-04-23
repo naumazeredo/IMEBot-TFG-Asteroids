@@ -62,6 +62,8 @@ void IMEBot::Process()
 
   // Laser avoidance
   for (auto laser : gamestate->lasers) {
+    if (laser.second->owner == myShip->uid) continue;
+
     vec2 dir = laser.second->vel - myShip->vel;
     vec2 deltaPos = myShip->pos - laser.second->pos;
 

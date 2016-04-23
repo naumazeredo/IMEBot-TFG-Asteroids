@@ -5,3 +5,4 @@
 - [ ] Keep distance from enemies (run, Forest!);
 - [ ] Stabilize before dodging when aiming;
 - [ ] Adjust forces using relative velocities between iminent rock and ship;
+- [ ] Implement wall forces toward center;

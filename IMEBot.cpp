@@ -14,7 +14,7 @@ IMEBot::~IMEBot()
 void IMEBot::stabilize() {
   float angvel = myShip->velAng;
 
-  if (fabs(angvel) > 10.0f) {
+  if (fabs(angvel) > 30.0f) {
     thrust = 0;
     sideThrustFront = angvel / 100;
     sideThrustBack = -angvel / 100;
@@ -50,7 +50,7 @@ void IMEBot::Process()
   // Rock avoidance
   for (auto rock : gamestate->rocks) {
     vec2 deltaPos = myShip->pos - rock.second->pos;
-    if (mag(deltaPos) < 10.0f) {
+    if (mag(deltaPos) < 15.0f) {
       vec2 relVel = rock.second->vel - myShip->vel;
       float k = dot(norm(deltaPos), relVel);
       if (k > 0.0f)
@@ -98,7 +98,6 @@ void IMEBot::Process()
   // Shoot logic
   shoot = 0;
 
-  // TODO(naum): Go near enemy if closer enemy is close enough
   if (closer) {
     vec2 deltaPos = closer->pos - myShip->pos;
     bool laserCanReach = closerDist < 25.0f * ((int)myShip->charge) * 2;

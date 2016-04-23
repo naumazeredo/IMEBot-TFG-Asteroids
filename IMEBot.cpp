@@ -68,8 +68,42 @@ void IMEBot::nextState() {
 }
 
 vec2 IMEBot::calculateRepulsiveForces() {
+  vec2 repForces {0.0f, 0.0f};
+  //calculate wall forces
   //TODO
-  return vec2{0.0f, 0.0f};
+  //calculate rock forces
+  for (pair<int, Rock*> rock : gamestate->rocks) {
+    // TODO(naum): relative velocity as potential weight
+    vec2 deltaPos = myShip->pos - rock.second->pos;
+    if (mag(deltaPos) < 10.0f) {
+      repForces += norm(deltaPos) * (10.0f / mag(deltaPos));
+    }
+    // TODO(naum): Improve using laser avoidance
+  }
+
+  //calculate laser forces
+  for (pair<int, Laser*> laser : gamestate->lasers) {
+    // TODO(naum): Use referencial velocity
+    vec2 dir = laser.second->vel;
+    vec2 deltaPos = myShip->pos - laser.second->pos;
+
+    // Don't consider past lasers
+    if (dot(deltaPos, dir) <= 0.0f) continue;
+
+    float force = squaremag(dir) / squaremag(deltaPos);
+
+    float projmag = mag(deltaPos) * dot(norm(dir), norm(deltaPos));
+    float projx = (deltaPos - norm(dir) * projmag).x;
+    if (fabs(projx) < 3.0f && projmag <= mag(dir) * laser.second->lifetime) {
+      vec2 perp { -dir.y, dir.x };
+      if (dot(perp, deltaPos) < 0)
+        perp = -perp;
+
+      repForces += norm(perp) * force;
+    }
+  }
+
+  return repForces;
 }
 
 void IMEBot::startCounter() {
@@ -107,8 +141,9 @@ void IMEBot::Process()
 
   float shipAngle = degtorad(myShip->ang);
 
-  vec2 resForce {0, 0};
+  vec2 resForce = calculateRepulsiveForces();
 
+  /*
   // TODO(naum): Avoid walls?
 
   // Rock avoidance
@@ -143,6 +178,7 @@ void IMEBot::Process()
       resForce += norm(perp) * force;
     }
   }
+  */
 
 
   // Get closer enemy

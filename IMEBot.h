@@ -12,13 +12,15 @@ class IMEBot : public BotBase
 private:
   State state;
   float timeZero;
+  vec2 repForces;
 
   vec2 calculateRepulsiveForces();
   void startCounter();
   void stabilize();
   float lookAt(vec2);
 
-  virtual void nextState();
+  void nextState();
+  string getState();
 public:
   IMEBot();
   virtual ~IMEBot();

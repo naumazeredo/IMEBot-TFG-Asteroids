@@ -3,7 +3,7 @@
 #include <string>
 #include <cmath>
 
-const float eps = 0.005f;
+//const float eps = 0.005f;
 
 IMEBot::IMEBot()
 {}
@@ -19,8 +19,7 @@ void IMEBot::stabilize() {
     sideThrustFront = angvel / 100;
     sideThrustBack = -angvel / 100;
   } else {
-    vec2 vel { myShip->velx, myShip->vely };
-    vec2 refVel = rotate(vel, -degtorad(myShip->ang));
+    vec2 refVel = rotate(myShip->vel, -degtorad(myShip->ang));
 
     thrust = -clamp(0.3f * refVel.y);
     sideThrustFront = -clamp(0.2f * refVel.x / 2);
@@ -29,8 +28,7 @@ void IMEBot::stabilize() {
 }
 
 float IMEBot::lookAt(vec2 target) {
-  vec2 deltaPos { myShip->posx, myShip->posy };
-  deltaPos = target - deltaPos;
+  vec2 deltaPos = target - myShip->pos;
   vec2 refTarget = rotate(deltaPos, -degtorad(myShip->ang));
 
   float theta = atan2(refTarget.y, refTarget.x) - M_PI/2.0f;
@@ -40,10 +38,9 @@ float IMEBot::lookAt(vec2 target) {
 
 void IMEBot::Process()
 {
-  float t = gamestate->timeStep * gamestate->tick;
+  //float t = gamestate->timeStep * gamestate->tick;
 
   float shipAngle = degtorad(myShip->ang);
-  vec2 shipPos { myShip->posx, myShip->posy };
 
   vec2 resForce {0, 0};
 
@@ -52,8 +49,7 @@ void IMEBot::Process()
   // Rock avoidance
   for (auto rock : gamestate->rocks) {
     // TODO(naum): relative velocity as potential weight
-    vec2 deltaPos { rock.second->posx, rock.second->posy };
-    deltaPos = shipPos - deltaPos;
+    vec2 deltaPos = myShip->pos - rock.second->pos;
     if (mag(deltaPos) < 10.0f) {
       resForce += norm(deltaPos) * (10.0f / mag(deltaPos));
     }
@@ -64,10 +60,8 @@ void IMEBot::Process()
   // Laser avoidance
   for (auto laser : gamestate->lasers) {
     // TODO(naum): Use referencial velocity
-    vec2 dir { laser.second->velx, laser.second->vely };
-
-    vec2 deltaPos { laser.second->posx, laser.second->posy };
-    deltaPos = shipPos - deltaPos;
+    vec2 dir = laser.second->vel;
+    vec2 deltaPos = myShip->pos - laser.second->pos;
 
     // Don't consider past lasers
     if (dot(deltaPos, dir) <= 0.0f) continue;
@@ -93,10 +87,9 @@ void IMEBot::Process()
   for (auto ship : gamestate->ships) {
     if (ship.second->uid == myShip->uid) continue;
 
-    vec2 pos { ship.second->posx, ship.second->posy };
-    if (mag(pos - shipPos) < closerDist) {
+    if (mag(ship.second->pos - myShip->pos) < closerDist) {
       closer = ship.second;
-      closerDist = mag(pos - shipPos);
+      closerDist = mag(ship.second->pos - myShip->pos);
     }
   }
 
@@ -105,7 +98,7 @@ void IMEBot::Process()
 
   // TODO(naum): Go near enemy if closer enemy is close enough
   if (closer) {
-    vec2 deltaPos { closer->posx - myShip->posx, closer->posy - myShip->posy };
+    vec2 deltaPos = closer->pos - myShip->pos;
     bool laserCanReach = closerDist < 25.0f * ((int)myShip->charge) * 2;
 
     if (laserCanReach) {
@@ -126,7 +119,7 @@ void IMEBot::Process()
     stabilize();
 
     if (closer) {
-      float force = lookAt({closer->posx, closer->posy});
+      float force = lookAt(closer->pos);
       sideThrustBack += force;
       sideThrustFront -= force;
     }

@@ -1,5 +1,6 @@
 #ifndef bot_interface_H
 #define bot_interface_H
+#include "util.h"
 #include <map>
 #include <string>
 
@@ -8,10 +9,12 @@ using namespace std;
 struct GameObject
 {	
 	int uid;
-	float posx;
-	float posy;
-	float velx;
-	float vely;
+	//float posx;
+	//float posy;
+	//float velx;
+	//float vely;
+  vec2 pos;
+  vec2 vel;
 	float radius;
 	
 	GameObject();
@@ -19,10 +22,14 @@ struct GameObject
 	GameObject(int _uid, float _posx, float _posy, float _velx, float _vely, float _radius)
 	{
 		uid = _uid;
-		posx = _posx;
-		posy = _posy;
-		velx = _velx;
-		vely = _vely;
+		//posx = _posx;
+		//posy = _posy;
+		//velx = _velx;
+		//vely = _vely;
+    pos.x = _posx;
+    pos.y = _posy;
+    vel.x = _velx;
+    vel.y = _vely;
 		radius = _radius;
 	} 
 	~GameObject(){};

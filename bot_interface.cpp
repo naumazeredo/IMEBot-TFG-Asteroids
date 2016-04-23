@@ -125,10 +125,10 @@ void GameState::ParseData(string toParse)
 			else 
 			{
 				ships[uid]->uid = uid;       
-				ships[uid]->posx = posx;
-				ships[uid]->posy = posy;
-				ships[uid]->velx = velx;
-				ships[uid]->vely = vely;
+				ships[uid]->pos.x = posx;
+				ships[uid]->pos.y = posy;
+				ships[uid]->vel.x = velx;
+				ships[uid]->vel.y = vely;
 				ships[uid]->radius = radius;
 				ships[uid]->ang = ang;
 				ships[uid]->velAng = velAng;
@@ -163,10 +163,10 @@ void GameState::ParseData(string toParse)
 			else 
 			{
 				rocks[uid]->uid = uid;       
-				rocks[uid]->posx = posx;
-				rocks[uid]->posy = posy;
-				rocks[uid]->velx = velx;
-				rocks[uid]->vely = vely;
+				rocks[uid]->pos.x = posx;
+				rocks[uid]->pos.y = posy;
+				rocks[uid]->vel.x = velx;
+				rocks[uid]->vel.y = vely;
 				rocks[uid]->radius = radius;
 			}
 		}
@@ -200,10 +200,10 @@ void GameState::ParseData(string toParse)
 			else 
 			{
 				lasers[uid]->uid = uid;       
-				lasers[uid]->posx = posx;
-				lasers[uid]->posy = posy;
-				lasers[uid]->velx = velx;
-				lasers[uid]->vely = vely;
+        lasers[uid]->pos.x = posx;
+				lasers[uid]->pos.y = posy;
+				lasers[uid]->vel.x = velx;
+				lasers[uid]->vel.y = vely;
 				lasers[uid]->radius = radius;
 				lasers[uid]->lifetime = lifetime;
 				lasers[uid]->owner = owner;

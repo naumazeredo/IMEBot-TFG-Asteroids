@@ -5,11 +5,76 @@
 
 //const float eps = 0.005f;
 
-IMEBot::IMEBot()
-{}
+IMEBot::IMEBot() : state(STABLE) {
+}
 
 IMEBot::~IMEBot()
 {}
+
+void IMEBot::nextState() {
+  vec2 repForce = calculateRepulsiveForces();
+  if (state == STABLE) {
+    if (mag(repForce) >= 0.4f) {
+      state = DODGING;
+    }
+    else if (gamestate->ships.size() != 1) {
+      state = TURN_AND_LOOK;
+    }
+    else {
+      state = STABLE;
+    }
+  }
+  else if (state == DODGING) {
+    if (mag(repForce) >= 0.4f) {
+      state = DODGING;
+    }
+    else {
+      state = STABILIZING;
+    }
+  }
+  else if (state == TURN_AND_LOOK) {
+    if (mag(repForce) >= 0.4f) {
+      state = PRE_DODGE;
+      startCounter();
+    }
+    else {
+      state = TURN_AND_LOOK;
+    }
+  }
+  else if (state == STABILIZING) {
+    if (mag(repForce) >= 0.4f) {
+      state = PRE_DODGE;
+    }
+    else if ((fabs(myShip->velAng) < 10.0f) && (fabs(mag(myShip->vel)) < 0.1f)) { //values to be tested
+      state = STABLE;
+    }
+    else {
+      state = STABILIZING;
+    }
+  }
+  else {  //if (state == PRE_DODGE) {
+    if ((gamestate->timeStep * gamestate->tick - timeZero) > 0.1) {   //100 ms trying to stabilize
+      if (mag(repForce) >= 0.4f) {
+        state = DODGING;
+      }
+      else {
+        state = STABILIZING;
+      }
+    }
+    else {
+      state = PRE_DODGE;
+    }
+  }
+}
+
+vec2 IMEBot::calculateRepulsiveForces() {
+  //TODO
+  return vec2{0.0f, 0.0f};
+}
+
+void IMEBot::startCounter() {
+  timeZero = gamestate->timeStep * gamestate->tick;
+}
 
 void IMEBot::stabilize() {
   float angvel = myShip->velAng;

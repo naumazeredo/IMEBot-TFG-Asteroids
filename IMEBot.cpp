@@ -49,6 +49,7 @@ void IMEBot::Process()
 
   // TODO(naum): Avoid walls?
 
+  // Rock avoidance
   for (auto rock : gamestate->rocks) {
     // TODO(naum): relative velocity as potential weight
     vec2 deltaPos { rock.second->posx, rock.second->posy };
@@ -60,6 +61,7 @@ void IMEBot::Process()
     // TODO(naum): Improve using laser avoidance
   }
 
+  // Laser avoidance
   for (auto laser : gamestate->lasers) {
     // TODO(naum): Use referencial velocity
     vec2 dir { laser.second->velx, laser.second->vely };
@@ -83,11 +85,39 @@ void IMEBot::Process()
     }
   }
 
-  vec2 refForce = rotate(resForce, -shipAngle);
 
+  // Get closer enemy
   float closerDist = 999999.0f;
   Ship* closer = nullptr;
 
+  for (auto ship : gamestate->ships) {
+    if (ship.second->uid == myShip->uid) continue;
+
+    vec2 pos { ship.second->posx, ship.second->posy };
+    if (mag(pos - shipPos) < closerDist) {
+      closer = ship.second;
+      closerDist = mag(pos - shipPos);
+    }
+  }
+
+  // Shoot logic
+  shoot = 0;
+
+  // TODO(naum): Go near enemy if closer enemy is close enough
+  if (closer) {
+    vec2 deltaPos { closer->posx - myShip->posx, closer->posy - myShip->posy };
+    bool laserCanReach = closerDist < 25.0f * ((int)myShip->charge) * 2;
+
+    if (laserCanReach) {
+      bool preciseAngle = (fabs(dot(norm(deltaPos), { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(1)));
+      if (preciseAngle) {
+        shoot = (int)myShip->charge;
+      }
+    }
+  }
+
+  // Set thrusters force
+  vec2 refForce = rotate(resForce, -shipAngle);
   if (mag(refForce) > 0.4f) {
     thrust = clamp(refForce.y);
     sideThrustFront = clamp(refForce.x / 2);
@@ -95,35 +125,10 @@ void IMEBot::Process()
   } else {
     stabilize();
 
-    for (auto ship : gamestate->ships) {
-      if (ship.second->uid == myShip->uid) continue;
-
-      vec2 pos { ship.second->posx, ship.second->posy };
-      if (mag(pos - shipPos) < closerDist) {
-        closer = ship.second;
-        closerDist = mag(pos - shipPos);
-      }
-    }
-
     if (closer) {
       float force = lookAt({closer->posx, closer->posy});
       sideThrustBack += force;
       sideThrustFront -= force;
-    }
-  }
-
-  shoot = 0;
-
-  if (closer) {
-    vec2 deltaPos { closer->posx - myShip->posx, closer->posy - myShip->posy };
-    deltaPos = norm(deltaPos);
-    bool closerDistMinus25 = closerDist < 25.0f * ((int)myShip->charge) * 3;
-    //float fabss = fabs(dot(deltaPos, { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) } ));
-    bool preciseAngle = (fabs(dot(deltaPos, { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(2)));
-
-    gamestate->Log(to_string(preciseAngle));
-    if (closerDistMinus25 && preciseAngle) {
-      shoot = (int)myShip->charge;
     }
   }
 }

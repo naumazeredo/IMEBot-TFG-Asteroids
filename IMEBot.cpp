@@ -32,6 +32,7 @@ float IMEBot::lookAt(vec2 target) {
   vec2 refTarget = rotate(deltaPos, -degtorad(myShip->ang));
 
   float theta = atan2(refTarget.y, refTarget.x) - M_PI/2.0f;
+  if (theta < -M_PI) theta += 2 * M_PI;
 
   return 3.0f * theta;
 }

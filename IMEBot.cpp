@@ -48,10 +48,12 @@ void IMEBot::Process()
 
   // Rock avoidance
   for (auto rock : gamestate->rocks) {
-    // TODO(naum): relative velocity as potential weight
     vec2 deltaPos = myShip->pos - rock.second->pos;
+    vec2 relVel = rock.second->vel - myShip->vel;
     if (mag(deltaPos) < 10.0f) {
-      resForce += norm(deltaPos) * (10.0f / mag(deltaPos));
+      float k = dot(norm(deltaPos), relVel);
+      if (k > 0.0f)
+        resForce += norm(deltaPos) * (10 * k / mag(deltaPos));
     }
 
     // TODO(naum): Improve using laser avoidance
@@ -59,8 +61,7 @@ void IMEBot::Process()
 
   // Laser avoidance
   for (auto laser : gamestate->lasers) {
-    // TODO(naum): Use referencial velocity
-    vec2 dir = laser.second->vel;
+    vec2 dir = laser.second->vel - myShip->vel;
     vec2 deltaPos = myShip->pos - laser.second->pos;
 
     // Don't consider past lasers

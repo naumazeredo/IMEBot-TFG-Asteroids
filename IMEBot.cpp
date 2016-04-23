@@ -90,7 +90,10 @@ string IMEBot::getState() {
 vec2 IMEBot::calculateRepulsiveForces() {
   vec2 repForces {0.0f, 0.0f};
   //calculate wall forces
-  //TODO
+  float distanceCenter = mag(myShip->pos);
+  if (fabs(gamestate->arenaRadius - distanceCenter) <= (2 * myShip->radius)) {
+    repForces += norm(myShip->pos) * (-1 * (distanceCenter));
+  }
   //calculate rock forces
   for (pair<int, Rock*> rock : gamestate->rocks) {
     // TODO(naum): relative velocity as potential weight
@@ -160,6 +163,8 @@ void IMEBot::Process()
   nextState();
   gamestate->Log(getState());
 
+  shoot = 0;
+
   if (state == STABLE) {
     stabilize();
     shoot = 1;
@@ -191,8 +196,6 @@ void IMEBot::Process()
         closerDist = mag(ship.second->pos - myShip->pos);
       }
     }
-    // Shoot logic
-    shoot = 0;
 
     // TODO(naum): Go near enemy if closer enemy is close enough
     if (closer) {

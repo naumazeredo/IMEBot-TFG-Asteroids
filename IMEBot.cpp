@@ -49,8 +49,8 @@ void IMEBot::Process()
   // Rock avoidance
   for (auto rock : gamestate->rocks) {
     vec2 deltaPos = myShip->pos - rock.second->pos;
-    vec2 relVel = rock.second->vel - myShip->vel;
     if (mag(deltaPos) < 10.0f) {
+      vec2 relVel = rock.second->vel - myShip->vel;
       float k = dot(norm(deltaPos), relVel);
       if (k > 0.0f)
         resForce += norm(deltaPos) * (10 * k / mag(deltaPos));

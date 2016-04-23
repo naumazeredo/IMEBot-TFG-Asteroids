@@ -11,14 +11,6 @@ inline float degtorad(float deg) {
   return deg * M_PI / 180.0f;
 }
 
-/*
-inline float minangle(float deltaAngle) {
-  return fabs(deltaAngle) > M_PI ? (-deltaAngle / fabs(deltaAngle))*fabs(2*M_PI - fabs(deltaAngle)) : deltaAngle;
-}
-*/
-
-inline float minangle(float deltaAngle) { return deltaAngle; }
-
 struct vec2 { float x, y; };
 
 inline vec2 operator-(const vec2 a) { return {-a.x, -a.y}; }

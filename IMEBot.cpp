@@ -27,6 +27,7 @@ void IMEBot::stabilize() {
   }
 }
 
+
 float IMEBot::lookAt(vec2 target) {
   vec2 deltaPos = target - myShip->pos;
   vec2 refTarget = rotate(deltaPos, -degtorad(myShip->ang));
@@ -44,8 +45,6 @@ void IMEBot::Process()
   float shipAngle = degtorad(myShip->ang);
 
   vec2 resForce {0, 0};
-
-  // TODO(naum): Avoid walls?
 
   // Rock avoidance
   for (auto rock : gamestate->rocks) {
@@ -83,7 +82,6 @@ void IMEBot::Process()
     }
   }
 
-
   // Get closer enemy
   float closerDist = 999999.0f;
   Ship* closer = nullptr;
@@ -97,21 +95,6 @@ void IMEBot::Process()
     }
   }
 
-  // Shoot logic
-  shoot = 0;
-
-  if (closer) {
-    vec2 deltaPos = closer->pos - myShip->pos;
-    bool laserCanReach = closerDist < 25.0f * ((int)myShip->charge) * 2;
-
-    if (laserCanReach) {
-      bool preciseAngle = (fabs(dot(norm(deltaPos), { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(1)));
-      if (preciseAngle) {
-        shoot = (int)myShip->charge;
-      }
-    }
-  }
-
   // Set thrusters force
   vec2 refForce = rotate(resForce, -shipAngle);
   if (mag(refForce) > 0.4f) {
@@ -122,15 +105,43 @@ void IMEBot::Process()
     stabilize();
 
     if (closer) {
-      float force = lookAt(closer->pos);
+      shootPos = closer->pos;
+
+      if ((int)myShip->charge) {
+        float vl = ((int)myShip->charge) * 25;
+        vec2 dpos = closer->pos - myShip->pos;
+        float dt = mag(dpos) / vl;
+
+        vec2 deltashoot = closer->vel * dt;
+        if (mag(deltashoot) > 2.0f) deltashoot = 2.0f * norm(deltashoot);
+
+        shootPos += deltashoot;
+      }
+
+      float force = lookAt(shootPos);
       sideThrustBack += force;
       sideThrustFront -= force;
     }
   }
 
+  // Shoot logic
+  shoot = 0;
+
+  if (closer) {
+    vec2 deltaPos = closer->pos - myShip->pos;
+    bool laserCanReach = mag(shootPos - myShip->pos) < 25.0f * ((int)myShip->charge) * 2;
+
+    if (laserCanReach) {
+      bool preciseAngle = (fabs(dot(norm(shootPos-myShip->pos), { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(1)));
+      if (preciseAngle) {
+        shoot = (int)myShip->charge;
+      }
+    }
+  }
+
   // Victory!!!
   if (!closer) {
-    thrust = 1.0f;
+    thrust = 0.0f;
     sideThrustFront = 1.0f;
     sideThrustBack = -1.0f;
     shoot = 1;

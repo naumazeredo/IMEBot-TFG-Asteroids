@@ -17,6 +17,7 @@ inline vec2 operator-(const vec2 a) { return {-a.x, -a.y}; }
 inline vec2 operator+(const vec2 a, const vec2 b) { return {a.x + b.x, a.y + b.y}; }
 inline vec2 operator-(const vec2 a, const vec2 b) { return a+(-b); }
 inline vec2 operator*(const vec2 v, const float s) { return {v.x * s, v.y * s}; }
+inline vec2 operator*(const float s, const vec2 v) { return v * s; }
 inline vec2 operator/(const vec2 v, const float s) { return {v.x / s, v.y / s}; }
 inline vec2& operator+=(vec2& a, const vec2 b) { return a=a+b; }
 inline vec2& operator-=(vec2& a, const vec2 b) { return a=a-b; }

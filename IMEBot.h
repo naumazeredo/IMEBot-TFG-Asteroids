@@ -8,8 +8,9 @@
 class IMEBot : public BotBase
 {
 private:
-  void stabilize();
+  vec2 shootPos;
 
+  void stabilize();
   float lookAt(vec2);
 public:
   IMEBot();

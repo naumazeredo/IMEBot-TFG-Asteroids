@@ -106,16 +106,20 @@ void IMEBot::Process()
 
     if (closer) {
       shootPos = closer->pos;
+      vec2 deltaPos = closer->pos - myShip->pos;
+      gamestate->Log(to_string(mag(deltaPos)));
+      gamestate->Log(to_string(myShip->pos.x) + " " + to_string(myShip->pos.y));
+      gamestate->Log(to_string(closer->pos.x) + " " + to_string(closer->pos.y));
+      if (mag(deltaPos) > 15.0f) {
+        if ((int)myShip->charge) {
+          float vl = ((int)myShip->charge) * 25;
+          float dt = mag(deltaPos) / vl;
 
-      if ((int)myShip->charge) {
-        float vl = ((int)myShip->charge) * 25;
-        vec2 dpos = closer->pos - myShip->pos;
-        float dt = mag(dpos) / vl;
+          vec2 deltashoot = closer->vel * dt;
+          if (mag(deltashoot) > 15.0f) deltashoot = 2.0f * norm(deltashoot);
 
-        vec2 deltashoot = closer->vel * dt;
-        if (mag(deltashoot) > 2.0f) deltashoot = 2.0f * norm(deltashoot);
-
-        shootPos += deltashoot;
+          shootPos += deltashoot;
+        }
       }
 
       float force = lookAt(shootPos);
@@ -129,12 +133,15 @@ void IMEBot::Process()
 
   if (closer) {
     vec2 deltaPos = closer->pos - myShip->pos;
-    bool laserCanReach = mag(shootPos - myShip->pos) < 25.0f * ((int)myShip->charge) * 2;
+    if (mag(deltaPos) <= 15.0f) shoot = 1;
+    else {
+      bool laserCanReach = mag(shootPos - myShip->pos) < 25.0f * ((int)myShip->charge) * 2;
 
-    if (laserCanReach) {
-      bool preciseAngle = (fabs(dot(norm(shootPos-myShip->pos), { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(1)));
-      if (preciseAngle) {
-        shoot = (int)myShip->charge;
+      if (laserCanReach) {
+        bool preciseAngle = (fabs(dot(norm(shootPos-myShip->pos), { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(1)));
+        if (preciseAngle) {
+          shoot = (int)myShip->charge;
+        }
       }
     }
   }

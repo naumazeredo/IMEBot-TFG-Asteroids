@@ -40,13 +40,14 @@ float IMEBot::lookAt(vec2 target) {
 
 void IMEBot::Process()
 {
-  //float t = gamestate->timeStep * gamestate->tick;
-
   float shipAngle = degtorad(myShip->ang);
 
   vec2 resForce {0, 0};
 
   // Rock avoidance
+  bool rockAhead = false;
+  vec2 rockPos {9999999.0f, 9999999.0f};
+  float rockSize = 0;
   for (auto rock : gamestate->rocks) {
     vec2 deltaPos = myShip->pos - rock.second->pos;
     if (mag(deltaPos) < 15.0f) {
@@ -56,7 +57,15 @@ void IMEBot::Process()
         resForce += norm(deltaPos) * (10 * k / mag(deltaPos));
     }
 
-    // TODO(naum): Improve using laser avoidance
+    vec2 shipDir = { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) };
+    float angle = dot(norm(-deltaPos), shipDir);
+    vec2 up {0.0f, 1.0f};
+    vec2 proj = rotate(-deltaPos, -degtorad(myShip->ang)) - (up * mag(deltaPos) * angle);
+    if (mag(proj) <= rock.second->radius and mag(deltaPos) < mag(rockPos-myShip->pos)) {
+      rockAhead = true;
+      rockPos = rock.second->pos;
+      rockSize = rock.second->radius;
+    }
   }
 
   // Laser avoidance
@@ -95,6 +104,20 @@ void IMEBot::Process()
     }
   }
 
+  if (closer) {
+    shootPos = closer->pos;
+    vec2 deltaPos = closer->pos - myShip->pos;
+    if (mag(deltaPos) > 15.0f and (int)myShip->charge) {
+      float vl = ((int)myShip->charge) * 25;
+      float dt = mag(deltaPos) / vl;
+
+      vec2 deltashoot = (closer->vel - myShip->vel) * dt;
+      if (mag(deltashoot) > 15.0f) deltashoot = 2.0f * norm(deltashoot);
+
+      shootPos += deltashoot;
+    }
+  }
+
   // Set thrusters force
   vec2 refForce = rotate(resForce, -shipAngle);
   if (mag(refForce) > 0.4f) {
@@ -105,23 +128,6 @@ void IMEBot::Process()
     stabilize();
 
     if (closer) {
-      shootPos = closer->pos;
-      vec2 deltaPos = closer->pos - myShip->pos;
-      gamestate->Log(to_string(mag(deltaPos)));
-      gamestate->Log(to_string(myShip->pos.x) + " " + to_string(myShip->pos.y));
-      gamestate->Log(to_string(closer->pos.x) + " " + to_string(closer->pos.y));
-      if (mag(deltaPos) > 15.0f) {
-        if ((int)myShip->charge) {
-          float vl = ((int)myShip->charge) * 25;
-          float dt = mag(deltaPos) / vl;
-
-          vec2 deltashoot = closer->vel * dt;
-          if (mag(deltashoot) > 15.0f) deltashoot = 2.0f * norm(deltashoot);
-
-          shootPos += deltashoot;
-        }
-      }
-
       float force = lookAt(shootPos);
       sideThrustBack += force;
       sideThrustFront -= force;
@@ -131,16 +137,18 @@ void IMEBot::Process()
   // Shoot logic
   shoot = 0;
 
-  if (closer) {
+  if (rockAhead and ((mag(rockPos-closer->pos) < 10.0f and rockSize > 3.0f) || (mag(rockPos-myShip->pos) < 10.0f and rockSize < 3.0f))) {
+    shoot = 1;
+  } else if (closer) {
     vec2 deltaPos = closer->pos - myShip->pos;
-    if (mag(deltaPos) <= 15.0f) shoot = 1;
+    if (mag(deltaPos) <= 25.0f) shoot = 1;
     else {
-      bool laserCanReach = mag(shootPos - myShip->pos) < 25.0f * ((int)myShip->charge) * 2;
-
+      bool laserCanReach = mag(shootPos - myShip->pos) < 20.0f * ((int)myShip->charge) * 2;
       if (laserCanReach) {
-        bool preciseAngle = (fabs(dot(norm(shootPos-myShip->pos), { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(1)));
+        bool preciseAngle = (fabs(dot(norm(shootPos-myShip->pos), { -1 * sin(degtorad(myShip->ang)), cos(degtorad(myShip->ang)) })) >= cos(degtorad(2)));
         if (preciseAngle) {
-          shoot = (int)myShip->charge;
+          if (!rockAhead or mag(rockPos-myShip->pos) > mag(deltaPos))
+            shoot = (int)myShip->charge;
         }
       }
     }
